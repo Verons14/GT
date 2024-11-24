@@ -1,0 +1,416 @@
+WPickaxe                          = {
+
+    "3HXB5HGR209:KAKAKA", "M766GY4JUPQ:KAKAKA", "YALOLXMQ4ZZ:KAKAKA",
+    "9VN1QILL610:KAKAKA", "A923JNBDE3O:KAKAKA", "FF4T1LYBTOX:KAKAKA",
+    "PI8J8JWU25V:KAKAKA", "YPH9LY68R35:KAKAKA", "9WCQ65BY7ME:KAKAKA",
+    "08KD14RJ7EA:KAKAKA", "9OIHW5HIZRH:KAKAKA", "4LV0TFAPSG9:kakaka"
+
+}
+StartDariBot                      = 1
+takePick                          = true
+doorPickaxe                       = "kakaka"
+takemag                           = true
+masukpintu                        = false
+botlvl                            = 12
+Worldmag                          = "OKSZI"
+Xmag                              = 1
+Ymag                              = 53
+delayWarp                         = 8000
+delayExecute                      = 1000
+
+bot                               = getBot()
+
+bot:getConsole().enabled          = true
+malady                            = bot.auto_malady
+bot.auto_malady.auto_chicken_feet = true
+bot.auto_malady.auto_grumbleteeth = true
+bot.auto_malady.auto_refresh      = true
+spam                              = getBot().auto_spam
+spam.random_interval              = true
+messages                          = spam.messages
+messages:clear()
+messages:add(
+    "Perasaanku padamu begitu dalam, seolah kata-kata tidak dapat cukup menggambarkan betapa kuat cinta ini. Aku harap kamu juga merasakannya.")
+messages:add(
+    "Doing something extraordinary is not an easy feat, but I believe that we are capable of overcoming every challenge that comes our way.")
+messages:add(
+    "Kayumi ga osottekuru to, reiseisa o tamochi, shuuchuu suru no wa muzukashiku narimasu. Shikashi, kore wa jinsei no tabiji ni okeru chiisana shiren da to wakatteimasu.")
+messages:add(
+    "Sampuutai, uli yeojeong-ui modeun geoleum-eseo hamkke haejwoseo gomawoyo. I ujeong-i gyesog jago oraetdong-an jisogdago baraeyo.")
+
+math.randomseed(os.time())
+local rotation                = getBot().rotation
+bot.legit_mode                = false
+bot.move_interval             = 150
+bot.move_range                = 1
+bot.collect_range             = 3
+bot.collect_interval          = 400
+bot.auto_reconnect            = true
+bot.reconnect_interval        = math.random(60, 100)
+bot.rest_interval             = math.random(1800, 3600)
+bot.rest_time                 = math.random(300, 600)
+bot.reconnect_on_location_ban = false
+bot.reconnect_on_maintenance  = false
+bot.anti_toxic                = true
+bot.gem_limit                 = 20000
+rotation.seed_drop_amount     = 100
+rotation.auto_jammer          = true
+rotation.harvest_until_level  = true
+rotation.auto_fill            = true
+rotation.pnb_in_home          = true
+rotation.auto_rest            = false
+rotation.dynamic_delay        = false
+rotation.break_interval       = 0.18
+rotation.harvest_interval     = 0.2
+rotation.plant_interval       = 0.18
+rotation.warp_interval        = math.random(10, 15)
+
+maxworldpickaxe               = #WPickaxe
+hitungworldpickaxe            = 0
+
+for index, namebotx in pairs(getBots()) do
+    if hitungworldpickaxe == maxworldpickaxe then
+        hitungworldpickaxe = 0
+    end
+    hitungworldpickaxe = hitungworldpickaxe + 1
+    if namebotx.name:upper() == bot.name:upper() then
+        coycoy = index + (StartDariBot - 1)
+        worldPickaxe, doorPickaxe = WPickaxe[hitungworldpickaxe]:match("([^:]+):([^:]+)")
+        break
+    end
+end
+
+function OnVariantList(variant, netid)
+    if variant:get(0):getString() == "OnConsoleMessage" then
+        if variant:get(1):getString():lower():find("inaccessible") or
+            variant:get(1):getString():lower():find("level ") then
+            nuked = true
+        end
+    end
+end
+
+function warp(world, id)
+    cok = 0
+    nuked = false
+    addEvent(Event.variantlist, OnVariantList)
+    while not bot:isInWorld(world:upper()) and not nuked do
+        if bot.status == BotStatus.online and bot:getPing() == 0 then
+            bot:disconnect()
+            sleep(5000)
+        end
+        while bot.status ~= BotStatus.online do
+            sleep(1000)
+            while bot.status == BotStatus.account_banned do
+                sleep(8000)
+                error()
+            end
+        end
+        if id ~= "" then
+            bot:sendPacket(3, "action|join_request\nname|" .. world:upper() .. "|" .. id:upper() .. "\ninvitedWorld|0")
+        else
+            bot:sendPacket(3, "action|join_request\nname|" .. world:upper() .. "\ninvitedWorld|0")
+        end
+        listenEvents(5)
+        sleep(delayWarp)
+        if cok == 5 then
+            while bot.status == BotStatus.online do
+                bot:disconnect()
+                bot.auto_reconnect = false
+                sleep(1000)
+            end
+            sleep(3 * 60000)
+            cok = 0
+            bot.auto_reconnect = true
+        else
+            cok = cok + 1
+        end
+    end
+    if nuked then
+        nukeWorldInfo(webhookNuked, world .. " is nuked. @everyone")
+    end
+    if id ~= "" and getTile(bot.x, bot.y).fg == 6 and not nuked then
+        while bot.status ~= BotStatus.online or bot:getPing() == 0 do
+            sleep(1000)
+            while bot.status == BotStatus.account_banned do
+                bot.auto_reconnect = false
+                bot:stopScript()
+            end
+        end
+        for i = 1, 3 do
+            if getTile(bot.x, bot.y).fg == 6 then
+                bot:sendPacket(3, "action|join_request\nname|" .. world:upper() .. "|" .. id:upper() ..
+                    "\ninvitedWorld|0")
+                sleep(2000)
+            end
+        end
+        if getTile(bot.x, bot.y).fg == 6 then
+            sleep(100)
+            nuked = true
+        end
+    end
+    sleep(100)
+    removeEvent(Event.variantlist)
+end
+
+function findItem(id)
+    return bot:getInventory():findItem(id)
+end
+
+function goExit()
+    while bot:getWorld().name ~= "EXIT" do
+        bot:sendPacket(3, "action|join_request\nname|EXIT\ninvitedWorld|0")
+        sleep(2000)
+    end
+end
+
+function clearBlocks()
+    bot:say("/home")
+    sleep(2000)
+    for _, tile in pairs(bot:getWorld():getTiles()) do
+        if getTile(tile.x, tile.y).fg == 4584 or
+            getTile(tile.x, tile.y).fg == 5666 or
+            getTile(tile.x, tile.y).fg == 998 then
+            bot:findPath(tile.x, tile.y)
+            while getTile(tile.x, tile.y).fg == 4584 or
+                getTile(tile.x, tile.y).fg == 5666 or
+                getTile(tile.x, tile.y).fg == 998 and
+                bot.x == tile.x and bot.y == tile.y do
+                bot:hit(tile.x, tile.y)
+                sleep(160)
+            end
+        end
+    end
+end
+
+function randomz(min, max)
+    math.randomseed(os.time()) -- Di dalam fungsi
+    return math.random(min, max)
+end
+
+function achivement(netid)
+    local netid = getLocal().netid
+    bot:wrenchPlayer(netid)
+    sleep(1000)
+    bot:sendPacket(2,
+        "action|dialog_return\ndialog_name|popup\nnetID|" .. netid .. "|\nbuttonClicked|open_personlize_profile")
+    sleep(1000)
+    bot:sendPacket(2,
+        "action|dialog_return\ndialog_name|personalize_profile\nbuttonClicked|save\n\ncheckbox_show_achievements|1\ncheckbox_show_total_ach_count|1\ncheckbox_show_account_age|1")
+    sleep(1000)
+end
+
+function notebook(netid)
+    local netid = getLocal().netid
+    bot:wrenchPlayer(netid)
+    sleep(1000)
+    bot:sendPacket(2, [[action|dialog_return
+        dialog_name|popup
+        netID|]] .. netid .. [[|
+        buttonClicked|notebook_edit]])
+    sleep(1000)
+    for i = 0, 4 do
+        bot:sendPacket(2, [[action|dialog_return
+        dialog_name|paginated_personal_notebook_view
+        pageNum|]] .. i .. [[|
+        buttonClicked|editPnPage]])
+        sleep(1000)
+        bot:sendPacket(2, [[action|dialog_return
+        dialog_name|paginated_personal_notebook_edit
+        pageNum|]] .. i .. [[|
+        buttonClicked|save
+
+        personal_note|anakq yang ke ]] .. i + 1)
+        sleep(1000)
+    end
+end
+
+function takemag()
+    while not bot:isInWorld(Worldmag:upper()) do
+        warp(Worldmag, "")
+    end
+    bot:wrench(Xmag, Ymag)
+    sleep(2000)
+    bot:sendPacket(2, "action|dialog_return\ndialog_name|itemsucker\ntilex|" ..
+        Xmag .. "|\ntiley|" .. Ymag .. "|\nbuttonClicked|getplantationdevice")
+    sleep(5000)
+    achivement(netid)
+    sleep(2000)
+    if bot:getInventory():findItem(5640) > 0 then
+        goExit()
+    end
+end
+
+function checkOnline()
+    while bot.status ~= BotStatus.online do
+        if bot.status == BotStatus.account_banned then
+            bot.auto_reconnect = false
+            malady.enabled = false
+            rotation.enabled = false
+            sleep(1000)
+            bot:stopScript()
+            return
+        end
+        sleep(2000)
+    end
+end
+
+sleep(delayExecute * (coycoy - 1))
+
+while bot.status ~= BotStatus.online do
+    sleep(40000)
+    while bot.status == BotStatus.account_banned do
+        bot.auto_reconnect = false
+        bot:stopScript()
+    end
+end
+
+function takePick()
+    bot.auto_collect = false
+    sleep(100)
+
+    while not bot:isInWorld(worldPickaxe:upper()) do
+        warp(worldPickaxe, doorPickaxe)
+    end
+
+    local foundPickaxe = false
+    for _, obj in pairs(bot:getWorld():getObjects()) do
+        if obj.id == 98 then
+            foundPickaxe = true
+            break
+        end
+    end
+
+    if not foundPickaxe then
+        local worldList =
+        { "star1", "star2", "buywings", "buyhands", "buysl", "buydeto" }
+        local randomWorld = worldList[math.random(#worldList)] -- Memilih world secara acak
+
+        warp(randomWorld:upper(), "")
+        return
+    end
+
+    while bot:getInventory():findItem(98) == 0 and bot:isInWorld(worldPickaxe:upper()) do
+        for _, obj in pairs(bot:getWorld():getObjects()) do
+            if obj.id == 98 then
+                bot:findPath(math.floor(obj.x / 32), math.floor(obj.y / 32))
+                sleep(100)
+                bot:collect(5)
+                sleep(100)
+            end
+            if bot:getInventory():findItem(98) > 0 then
+                break
+            end
+        end
+        sleep(500)
+    end
+
+    sleep(100)
+    bot:setDirection(false)
+    sleep(100)
+    while bot:getInventory():findItem(98) > 1 do
+        bot:sendPacket(2, "action|drop\n|itemID|98")
+        sleep(500)
+        bot:sendPacket(2,
+            "action|dialog_return\ndialog_name|drop_item\nitemID|98|\ncount|" .. (bot:getInventory():findItem(98) - 1))
+        sleep(500)
+    end
+    if bot:getInventory():findItem(98) == 1 then
+        bot:wear(98)
+    else
+        while bot:getInventory():findItem(98) > 1 do
+            bot:sendPacket(2, "action|drop\n|itemID|98")
+            sleep(500)
+            bot:sendPacket(2,
+                "action|dialog_return\ndialog_name|drop_item\nitemID|98|\ncount|" ..
+                (bot:getInventory():findItem(98) - 1))
+            sleep(500)
+        end
+        if bot:getInventory():findItem(98) == 1 then
+            bot:wear(98)
+        end
+    end
+    sleep(100)
+    notebook(netid)
+end
+
+function fashionWeek()
+    for _, item in pairs(bot:getInventory():getItems()) do
+        if bot:getInventory():getItemCount(item.id) == 1 then
+            sleep(500)
+            bot:wear(item.id)
+            sleep(500)
+            bot:wear(98)
+            sleep(100)
+        end
+    end
+end
+
+buyJubah = true
+
+function jubahKeramat()
+    if buyJubah then
+        if bot.gem_count > 5000 then
+            sleep(100)
+            while bot:getInventory().slotcount < 56 do
+                sleep(1000)
+                bot:sendPacket(2, "action|buy\nitem|upgrade_backpack")
+                sleep(4000)
+            end
+            sleep(500)
+            bot:sendPacket(2, "action|buy\nitem|rare_clothes")
+            sleep(4000)
+            fashionWeek()
+            sleep(100)
+            buyJubah = false
+            sleep(100)
+        end
+    end
+end
+
+function randomColor()
+    if randomSkin then
+        local colors = { 1348237567, 1685231359, 2022356223, 2190853119, 2527912447, 2864971775, 3033464831, 3370516479 }
+        client:sendPacket(2, 'action|setSkin\ncolor|' .. colors[math.random(1, #colors)])
+        sleep(1000)
+    end
+end
+
+if bot.level < botlvl then
+    malady.enabled = true
+    sleep(1000)
+    rotation.enabled = true
+    while bot.level < botlvl do
+        sleep(15000)
+    end
+end
+if bot:getInventory():findItem(98) == 0 then
+    malady.enabled = false
+    sleep(1000)
+    rotation.enabled = false
+    takePick()
+end
+if bot.gem_count > 5000 and bot:getInventory().slotcount < 56 then
+    jubahKeramat()
+    randomColor()
+end
+bot.gem_limit                 = 10000
+while true do
+    takemag()
+    sleep(1000)
+    malady.enabled = true
+    sleep(1000)
+    rotation.enabled = true
+    sleep(math.random(180, 240) * 60000)
+    rotation.enabled = false
+    sleep(100)
+    clearBlocks()
+    sleep(100)
+    malady.enabled = false
+    sleep(100)
+    checkOnline()
+    sleep(100)
+    randomColor()
+    sleep(100)
+    goExit()
+    sleep(math.random(10, 20) * 1000)
+end
