@@ -13,7 +13,7 @@ Worldmag                          = "OKSZI"
 Xmag                              = 1
 Ymag                              = 53
 delayWarp                         = 8000
-delayExecute                      = 1000
+delayExecute                      = 0
 
 bot                               = getBot()
 
