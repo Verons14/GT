@@ -1,22 +1,16 @@
-WPickaxe                          = {
-
-    "3HXB5HGR209:KAKAKA", "M766GY4JUPQ:KAKAKA", "YALOLXMQ4ZZ:KAKAKA",
-    "9VN1QILL610:KAKAKA", "A923JNBDE3O:KAKAKA", "FF4T1LYBTOX:KAKAKA",
-    "PI8J8JWU25V:KAKAKA", "YPH9LY68R35:KAKAKA", "9WCQ65BY7ME:KAKAKA",
-    "08KD14RJ7EA:KAKAKA", "9OIHW5HIZRH:KAKAKA", "4LV0TFAPSG9:kakaka"
-
+wearStorages                          = {
+    "3HXB5HGR209|KAKAKA", "M766GY4JUPQ|KAKAKA", "YALOLXMQ4ZZ|KAKAKA",
+    "9VN1QILL610|KAKAKA", "A923JNBDE3O|KAKAKA", "FF4T1LYBTOX|KAKAKA",
+    "PI8J8JWU25V|KAKAKA", "YPH9LY68R35|KAKAKA", "9WCQ65BY7ME|KAKAKA",
+    "08KD14RJ7EA|KAKAKA", "9OIHW5HIZRH|KAKAKA", "4LV0TFAPSG9|kakaka"
 }
-StartDariBot                      = 1
-takePick                          = true
-doorPickaxe                       = "kakaka"
-takemag                           = true
-masukpintu                        = false
+StartDariBot                      = 1 
 botlvl                            = 12
 Worldmag                          = "OKSZI"
 Xmag                              = 1
 Ymag                              = 53
 delayWarp                         = 8000
-delayExecute                      = 1000
+delayExecute                      = 3000
 
 bot                               = getBot()
 
@@ -40,42 +34,35 @@ messages:add(
 
 math.randomseed(os.time())
 local rotation                = getBot().rotation
-bot.legit_mode                = false
+bot.legit_mode                = true
 bot.move_interval             = 150
-bot.move_range                = 1
+bot.move_range                = 4
 bot.collect_range             = 3
-bot.collect_interval          = 400
+bot.collect_interval          = 100
 bot.auto_reconnect            = true
 bot.reconnect_interval        = math.random(60, 100)
-bot.rest_interval             = math.random(1800, 3600)
-bot.rest_time                 = math.random(300, 600)
+bot.random_reconnect = false
+bot.min_reconnect = 60
+bot.max_reconnect = 100
 bot.reconnect_on_location_ban = false
 bot.reconnect_on_maintenance  = false
+bot.reconnect_on_unknown_url  = true
 bot.anti_toxic                = true
-bot.gem_limit                 = 20000
+bot.gem_limit                 = 100000
 rotation.seed_drop_amount     = 100
 rotation.auto_jammer          = true
 rotation.harvest_until_level  = true
-rotation.auto_fill            = true
+rotation.auto_fill            = false
 rotation.pnb_in_home          = true
-rotation.auto_rest            = false
-rotation.dynamic_delay        = false
 rotation.break_interval       = 0.18
 rotation.harvest_interval     = 0.2
 rotation.plant_interval       = 0.18
 rotation.warp_interval        = math.random(10, 15)
 
-maxworldpickaxe               = #WPickaxe
-hitungworldpickaxe            = 0
 
 for index, namebotx in pairs(getBots()) do
-    if hitungworldpickaxe == maxworldpickaxe then
-        hitungworldpickaxe = 0
-    end
-    hitungworldpickaxe = hitungworldpickaxe + 1
     if namebotx.name:upper() == bot.name:upper() then
         coycoy = index + (StartDariBot - 1)
-        worldPickaxe, doorPickaxe = WPickaxe[hitungworldpickaxe]:match("([^:]+):([^:]+)")
         break
     end
 end
@@ -102,6 +89,7 @@ function warp(world, id)
             sleep(1000)
             while bot.status == BotStatus.account_banned do
                 sleep(8000)
+                bot.auto_reconnect = false
                 error()
             end
         end
@@ -125,15 +113,13 @@ function warp(world, id)
             cok = cok + 1
         end
     end
-    if nuked then
-        nukeWorldInfo(webhookNuked, world .. " is nuked. @everyone")
-    end
     if id ~= "" and getTile(bot.x, bot.y).fg == 6 and not nuked then
         while bot.status ~= BotStatus.online or bot:getPing() == 0 do
             sleep(1000)
             while bot.status == BotStatus.account_banned do
+                sleep(8000)
                 bot.auto_reconnect = false
-                bot:stopScript()
+                error()
             end
         end
         for i = 1, 3 do
@@ -163,9 +149,24 @@ function goExit()
     end
 end
 
-function clearBlocks()
-    bot:say("/home")
+function takemag()
+    while not bot:isInWorld(Worldmag:upper()) do
+        warp(Worldmag, "")
+    end
+    bot:wrench(Xmag, Ymag)
     sleep(2000)
+    bot:sendPacket(2, "action|dialog_return\ndialog_name|itemsucker\ntilex|" ..
+        Xmag .. "|\ntiley|" .. Ymag .. "|\nbuttonClicked|getplantationdevice")
+    sleep(5000)
+    if bot:getInventory():findItem(5640) > 0 then
+        goExit()
+    end
+end
+
+function clearBlocks()
+    sleep(10000)
+    bot:say("/home")
+    sleep(5000)
     for _, tile in pairs(bot:getWorld():getTiles()) do
         if getTile(tile.x, tile.y).fg == 4584 or
             getTile(tile.x, tile.y).fg == 5666 or
@@ -182,64 +183,6 @@ function clearBlocks()
     end
 end
 
-function randomz(min, max)
-    math.randomseed(os.time()) -- Di dalam fungsi
-    return math.random(min, max)
-end
-
-function achivement(netid)
-    local netid = getLocal().netid
-    bot:wrenchPlayer(netid)
-    sleep(1000)
-    bot:sendPacket(2,
-        "action|dialog_return\ndialog_name|popup\nnetID|" .. netid .. "|\nbuttonClicked|open_personlize_profile")
-    sleep(1000)
-    bot:sendPacket(2,
-        "action|dialog_return\ndialog_name|personalize_profile\nbuttonClicked|save\n\ncheckbox_show_achievements|1\ncheckbox_show_total_ach_count|1\ncheckbox_show_account_age|1")
-    sleep(1000)
-end
-
-function notebook(netid)
-    local netid = getLocal().netid
-    bot:wrenchPlayer(netid)
-    sleep(1000)
-    bot:sendPacket(2, [[action|dialog_return
-        dialog_name|popup
-        netID|]] .. netid .. [[|
-        buttonClicked|notebook_edit]])
-    sleep(1000)
-    for i = 0, 4 do
-        bot:sendPacket(2, [[action|dialog_return
-        dialog_name|paginated_personal_notebook_view
-        pageNum|]] .. i .. [[|
-        buttonClicked|editPnPage]])
-        sleep(1000)
-        bot:sendPacket(2, [[action|dialog_return
-        dialog_name|paginated_personal_notebook_edit
-        pageNum|]] .. i .. [[|
-        buttonClicked|save
-
-        personal_note|anakq yang ke ]] .. i + 1)
-        sleep(1000)
-    end
-end
-
-function takemag()
-    while not bot:isInWorld(Worldmag:upper()) do
-        warp(Worldmag, "")
-    end
-    bot:wrench(Xmag, Ymag)
-    sleep(2000)
-    bot:sendPacket(2, "action|dialog_return\ndialog_name|itemsucker\ntilex|" ..
-        Xmag .. "|\ntiley|" .. Ymag .. "|\nbuttonClicked|getplantationdevice")
-    sleep(5000)
-    achivement(netid)
-    sleep(2000)
-    if bot:getInventory():findItem(5640) > 0 then
-        goExit()
-    end
-end
-
 function checkOnline()
     while bot.status ~= BotStatus.online do
         if bot.status == BotStatus.account_banned then
@@ -252,85 +195,6 @@ function checkOnline()
         end
         sleep(2000)
     end
-end
-
-sleep(delayExecute * (coycoy - 1))
-
-while bot.status ~= BotStatus.online do
-    sleep(40000)
-    while bot.status == BotStatus.account_banned do
-        bot.auto_reconnect = false
-        bot:stopScript()
-    end
-end
-
-function takePick()
-    bot.auto_collect = false
-    sleep(100)
-
-    while not bot:isInWorld(worldPickaxe:upper()) do
-        warp(worldPickaxe, doorPickaxe)
-    end
-
-    local foundPickaxe = false
-    for _, obj in pairs(bot:getWorld():getObjects()) do
-        if obj.id == 98 then
-            foundPickaxe = true
-            break
-        end
-    end
-
-    if not foundPickaxe then
-        local worldList =
-        { "star1", "star2", "buywings", "buyhands", "buysl", "buydeto" }
-        local randomWorld = worldList[math.random(#worldList)] -- Memilih world secara acak
-
-        warp(randomWorld:upper(), "")
-        return
-    end
-
-    while bot:getInventory():findItem(98) == 0 and bot:isInWorld(worldPickaxe:upper()) do
-        for _, obj in pairs(bot:getWorld():getObjects()) do
-            if obj.id == 98 then
-                bot:findPath(math.floor(obj.x / 32), math.floor(obj.y / 32))
-                sleep(100)
-                bot:collect(5)
-                sleep(100)
-            end
-            if bot:getInventory():findItem(98) > 0 then
-                break
-            end
-        end
-        sleep(500)
-    end
-
-    sleep(100)
-    bot:setDirection(false)
-    sleep(100)
-    while bot:getInventory():findItem(98) > 1 do
-        bot:sendPacket(2, "action|drop\n|itemID|98")
-        sleep(500)
-        bot:sendPacket(2,
-            "action|dialog_return\ndialog_name|drop_item\nitemID|98|\ncount|" .. (bot:getInventory():findItem(98) - 1))
-        sleep(500)
-    end
-    if bot:getInventory():findItem(98) == 1 then
-        bot:wear(98)
-    else
-        while bot:getInventory():findItem(98) > 1 do
-            bot:sendPacket(2, "action|drop\n|itemID|98")
-            sleep(500)
-            bot:sendPacket(2,
-                "action|dialog_return\ndialog_name|drop_item\nitemID|98|\ncount|" ..
-                (bot:getInventory():findItem(98) - 1))
-            sleep(500)
-        end
-        if bot:getInventory():findItem(98) == 1 then
-            bot:wear(98)
-        end
-    end
-    sleep(100)
-    notebook(netid)
 end
 
 function fashionWeek()
@@ -375,26 +239,54 @@ function randomColor()
     end
 end
 
-if bot.level < botlvl then
-    malady.enabled = true
-    sleep(1000)
-    rotation.enabled = true
-    while bot.level < botlvl do
-        sleep(15000)
+sleep(delayExecute * (coycoy - 1))
+
+while bot.status ~= BotStatus.online do
+    sleep(40000)
+    while bot.status == BotStatus.account_banned do
+        bot.auto_reconnect = false
+        bot:stopScript()
     end
 end
-if bot:getInventory():findItem(98) == 0 then
+
+
+rotation.enabled = false
+sleep(1000)
+malady.enabled = false
+
+if bot.level < botlvl then
+    malady.enabled = true
+    sleep(5000)
+    rotation.enabled = true
+    while bot.level < botlvl do
+        sleep(5000)
+    end
+end
+
+if bot.gem_count > 5000 and bot:getInventory().slotcount < 56 then
     malady.enabled = false
     sleep(1000)
     rotation.enabled = false
-    takePick()
-end
-if bot.gem_count > 5000 and bot:getInventory().slotcount < 56 then
+    sleep(100)
     jubahKeramat()
+    sleep(100)
     randomColor()
 end
-bot.gem_limit                 = 10000
+
+if bot:getInventory():findItem(98) == 0 then
+    wearId           = 98
+    world            = wearStorages[((bot.index - 1) % #wearStorages) + 1]
+    bot.wear_id[6]   = wearId
+    bot.wear_storage = world
+    sleep(1000)
+    bot.auto_wear    = true
+    while bot:getInventory():findItem(98) ~= 1 do
+        sleep(5000)
+    end
+end
+
 while true do
+    bot.gem_limit = math.random(6000, 10000)
     takemag()
     sleep(1000)
     malady.enabled = true
@@ -414,3 +306,4 @@ while true do
     goExit()
     sleep(math.random(10, 20) * 1000)
 end
+
