@@ -242,7 +242,7 @@ function checkOnline()
         if bot.status == BotStatus.account_banned then
             bot.auto_reconnect = false
             malady.enabled = false
-            rotation.enabled = false
+            rotation.role = 0
             sleep(1000)
             bot:stopScript()
             return
@@ -375,7 +375,7 @@ end
 if bot.level < botlvl then
     malady.enabled = true
     sleep(1000)
-    rotation.enabled = true
+    rotation.role = 1
     while bot.level < botlvl do
         sleep(15000)
     end
@@ -383,7 +383,7 @@ end
 if bot:getInventory():findItem(98) == 0 then
     malady.enabled = false
     sleep(1000)
-    rotation.enabled = false
+    rotation.role = 0
     takePick()
 end
 if bot.gem_count > 5000 and bot:getInventory().slotcount < 56 then
@@ -396,9 +396,9 @@ while true do
     sleep(1000)
     malady.enabled = true
     sleep(1000)
-    rotation.enabled = true
+    rotation.role = 1
     sleep(math.random(180, 240) * 60000)
-    rotation.enabled = false
+    rotation.role = 0
     sleep(100)
     clearBlocks()
     sleep(100)
